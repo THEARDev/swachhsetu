@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, send_from_directory, jsonify, request as req
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash
@@ -30,16 +33,17 @@ def create_app():
     from routes.admin import admin_bp
     from routes.awareness import awareness_bp
     from routes.worker import worker_bp
+    from routes.chatbot import chatbot_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(complaints_bp, url_prefix="/api/complaints")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(awareness_bp, url_prefix="/api/awareness")
     app.register_blueprint(worker_bp, url_prefix="/api/worker")
+    app.register_blueprint(chatbot_bp, url_prefix="/api/chatbot")
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-    # ---------- ROUTES ----------
     @app.route("/uploads/<filename>")
     def uploaded_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
@@ -52,7 +56,6 @@ def create_app():
     def home():
         return app.send_static_file("index.html")
 
-    # ---------- ERROR HANDLERS ----------
     @app.errorhandler(404)
     def not_found(e):
         if req.path.startswith("/api/"):
@@ -67,60 +70,51 @@ def create_app():
     def server_error(e):
         return jsonify(msg="Internal server error"), 500
 
-    # ---------- DB INIT + SEED ----------
     with app.app_context():
         from models import User, Complaint, StatusLog, Feedback  # noqa: F401
 
         db.create_all()
 
-        # Seed admin
         if not User.query.filter_by(email="admin@demo.com").first():
-            admin = User(
+            db.session.add(User(
                 name="Demo Admin",
                 email="admin@demo.com",
                 phone="9999999999",
                 password_hash=generate_password_hash("admin123"),
                 role="admin",
-            )
-            db.session.add(admin)
+            ))
             print("[SEED] Admin created: admin@demo.com / admin123")
 
-        # Seed citizen
         if not User.query.filter_by(email="citizen@demo.com").first():
-            citizen = User(
+            db.session.add(User(
                 name="Demo Citizen",
                 email="citizen@demo.com",
                 phone="8888888888",
                 password_hash=generate_password_hash("citizen123"),
                 role="citizen",
-            )
-            db.session.add(citizen)
+            ))
             print("[SEED] Citizen created: citizen@demo.com / citizen123")
 
-        # Seed worker 1
         if not User.query.filter_by(email="ramesh@demo.com").first():
-            worker1 = User(
+            db.session.add(User(
                 name="Ramesh Kumar",
                 email="ramesh@demo.com",
                 phone="7777777777",
                 password_hash=generate_password_hash("worker123"),
                 role="worker",
                 zone="Mumbai Zone 3",
-            )
-            db.session.add(worker1)
+            ))
             print("[SEED] Worker 1 created: ramesh@demo.com / worker123")
 
-        # Seed worker 2
         if not User.query.filter_by(email="suresh@demo.com").first():
-            worker2 = User(
+            db.session.add(User(
                 name="Suresh Patel",
                 email="suresh@demo.com",
                 phone="6666666666",
                 password_hash=generate_password_hash("worker123"),
                 role="worker",
                 zone="Mumbai Zone 5",
-            )
-            db.session.add(worker2)
+            ))
             print("[SEED] Worker 2 created: suresh@demo.com / worker123")
 
         db.session.commit()
@@ -128,7 +122,6 @@ def create_app():
     return app
 
 
-# Dev run
 if __name__ == "__main__":
     import webbrowser
     from threading import Timer
