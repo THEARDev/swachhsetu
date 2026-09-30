@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Admin Dashboard — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu <span style="font-size:0.7rem;opacity:0.6;font-weight:600">ADMIN</span></a>
+    <div class="nav-links">
+      <a href="workers.html">👷 Workers</a>
+      <span class="text-muted" style="font-size:0.9rem" id="adminGreet"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container">
+
+      <div class="admin-header">
+        <div>
+          <h2>Admin Dashboard 📊</h2>
+          <p class="text-muted" style="font-size:0.92rem;margin-top:2px">
+            Complaints manage karo, workers assign karo, map pe hotspots dekho
+          </p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="refreshAll()">🔄 Refresh</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-icon">📋</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="statPending">—</div>
+          <div class="stat-icon">⏳</div>
+        </div>
+        <div class="stat-card cool">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="statProgress">—</div>
+          <div class="stat-icon">🔧</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Resolved</div>
+          <div class="stat-value" id="statResolved">—</div>
+          <div class="stat-icon">✅</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-label">Workers</div>
+          <div class="stat-value" id="statWorkers">—</div>
+          <div class="stat-icon">👷</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>🗺️ Complaint Map</h3>
+        <span class="text-muted" style="font-size:0.82rem" id="mapCount"></span>
+      </div>
+      <div id="map"></div>
+
+      <div class="section-head">
+        <h3>📋 All Complaints</h3>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="filterTabs">
+          <button class="btn btn-primary btn-sm" data-filter="all">All</button>
+          <button class="btn btn-ghost btn-sm" data-filter="submitted">Submitted</button>
+          <button class="btn btn-ghost btn-sm" data-filter="acknowledged">Assigned</button>
+          <button class="btn btn-ghost btn-sm" data-filter="in_progress">In Progress</button>
+          <button class="btn btn-ghost btn-sm" data-filter="resolved">Resolved</button>
+        </div>
+      </div>
+
+      <div id="complaintsArea">
+        <div class="loader"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+
+  <!-- ASSIGN MODAL -->
+  <div id="assignModal" style="display:none;position:fixed;inset:0;background:rgba(26,20,16,0.6);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--card);border-radius:24px;padding:32px;max-width:460px;width:100%;box-shadow:var(--shadow-lg)">
+      <h3 style="margin-bottom:8px">👷 Assign Worker</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px" id="assignTicketInfo"></p>
+
+      <div class="form-group">
+        <label>Select Worker</label>
+        <select id="workerSelect" class="select" required>
+          <option value="">— Loading workers —</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost btn-block" onclick="closeAssignModal()">Cancel</button>
+        <button class="btn btn-primary btn-block" id="assignBtn" onclick="confirmAssign()">👷 Assign</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (!requireAdmin()) throw new Error("Not authorized as admin");
+
+    const adminName = localStorage.getItem("name") || "Admin";
+    document.getElementById("adminGreet").textContent = "Hi, " + adminName.split(" ")[0];
+
+    let allComplaints = [];
+    let allWorkers = [];
+    let currentFilter = "all";
+    let assigningComplaintId = null;
+    let map = null;
+    let markerLayer = null;
+
+    function initMap() {
+      if (map) return;
+      map = L.map("map").setView([20.59, 78.96], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap",
+        maxZoom: 19,
+      }).addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
+    }
+
+    function markerColor(status) {
+      if (status === "resolved") return "#4A7C59";
+      if (status === "in_progress") return "#4A7C8C";
+      if (status === "acknowledged") return "#D9825F";
+      return "#C77D8C";
+    }
+
+    function makeMarkerIcon(status) {
+      const color = markerColor(status);
+      return L.divIcon({
+        className: "",
+        html: `<div style="width:20px;height:20px;background:${color};border:3px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+    }
+
+    function renderMap(complaints) {
+      initMap();
+      markerLayer.clearLayers();
+      let count = 0;
+      complaints.forEach((c) => {
+        if (!c.lat || !c.lng) return;
+        const marker = L.marker([c.lat, c.lng], { icon: makeMarkerIcon(c.status) });
+        marker.bindPopup(`
+          <div style="font-family:Inter,sans-serif;min-width:180px">
+            <div style="font-weight:700;color:#4A7C59;font-family:monospace;font-size:13px">${escapeHTML(c.ticket_id)}</div>
+            <div style="margin:6px 0;font-size:12px">
+              <b>Category:</b> ${escapeHTML(categoryLabel(c.category))}<br>
+              <b>Priority:</b> ${escapeHTML(c.priority || "medium")}<br>
+              <b>Status:</b> ${escapeHTML(statusLabel(c.status))}<br>
+              <b>Location:</b> ${escapeHTML(truncate(c.address || "-", 40))}
+            </div>
+          </div>
+        `);
+        markerLayer.addLayer(marker);
+        count++;
+      });
+      document.getElementById("mapCount").textContent = count + " complaint" + (count !== 1 ? "s" : "") + " on map";
+      if (count > 0) {
+        try {
+          const group = L.featureGroup(markerLayer.getLayers());
+          map.fitBounds(group.getBounds().pad(0.2));
+        } catch (_) {}
+      }
+    }
+
+    function renderComplaints() {
+      const area = document.getElementById("complaintsArea");
+      const filtered = currentFilter === "all"
+        ? allComplaints
+        : allComplaints.filter((c) => c.status === currentFilter);
+
+      if (!filtered.length) {
+        area.innerHTML = emptyState("📭", "No complaints" + (currentFilter !== "all" ? " in this filter" : ""), "Filter change karo ya naye complaints ka wait karo.");
+        return;
+      }
+
+      const rows = filtered.map((c) => {
+        const isResolved = c.status === "resolved";
+        const isProgress = c.status === "in_progress";
+        const isAssigned = c.status === "acknowledged";
+        const assignedWorker = allWorkers.find(w => w.id === c.assigned_to);
+        const workerName = assignedWorker ? assignedWorker.name : null;
+
+        return `
+          <tr>
+            <td><strong style="font-family:monospace;color:var(--sage-700)">${escapeHTML(c.ticket_id)}</strong></td>
+            <td>${categoryBadge(c.category)}</td>
+            <td>${priorityBadge(c.priority)}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td style="max-width:180px">${escapeHTML(truncate(c.description || "-", 45))}</td>
+            <td style="color:var(--text-muted);font-size:0.82rem;max-width:160px">${escapeHTML(truncate(c.address || "-", 28))}</td>
+            <td style="font-size:0.82rem;color:var(--text-muted)">
+              ${workerName ? `👷 ${escapeHTML(workerName)}` : "—"}
+            </td>
+            <td style="white-space:nowrap">
+              ${!isResolved && !isAssigned && !isProgress ? `<button class="btn btn-primary btn-sm" onclick="openAssignModal(${c.id}, '${escapeHTML(c.ticket_id)}')">👷 Assign</button>` : ""}
+              ${isAssigned || isProgress ? `<button class="btn btn-ghost btn-sm" onclick="openAssignModal(${c.id}, '${escapeHTML(c.ticket_id)}')">🔄 Reassign</button>` : ""}
+              ${isResolved ? `<span style="color:var(--sage-700);font-weight:600;font-size:0.85rem">Done ✓</span>` : ""}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      area.innerHTML = `
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Description</th>
+                <th>Location</th>
+                <th>Worker</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    async function loadStats() {
+      try {
+        const s = await apiGet("/admin/stats");
+        document.getElementById("statTotal").textContent = s.total;
+        document.getElementById("statPending").textContent = s.pending;
+        document.getElementById("statProgress").textContent = s.in_progress || 0;
+        document.getElementById("statResolved").textContent = s.resolved;
+        document.getElementById("statWorkers").textContent = s.workers || 0;
+      } catch (err) { console.error("Stats error:", err); }
+    }
+
+    async function loadWorkers() {
+      try {
+        allWorkers = await apiGet("/admin/workers");
+      } catch (err) {
+        console.error("Workers error:", err);
+        allWorkers = [];
+      }
+    }
+
+    async function loadComplaints() {
+      const area = document.getElementById("complaintsArea");
+      showLoader(area);
+      try {
+        allComplaints = await apiGet("/admin/complaints");
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        allComplaints.sort((a, b) => {
+          const pa = priorityOrder[a.priority] ?? 1;
+          const pb = priorityOrder[b.priority] ?? 1;
+          return pa - pb;
+        });
+        renderComplaints();
+        renderMap(allComplaints);
+      } catch (err) {
+        area.innerHTML = emptyState("⚠️", "Could not load complaints", err.message || "Please try again.");
+        toast(err.message || "Failed to load", "error");
+      }
+    }
+
+    async function refreshAll() {
+      toast("Refreshing...", "info", 800);
+      await Promise.all([loadStats(), loadWorkers(), loadComplaints()]);
+    }
+
+    function openAssignModal(cid, ticketId) {
+      assigningComplaintId = cid;
+      document.getElementById("assignTicketInfo").innerHTML =
+        `Assigning <strong style="font-family:monospace;color:var(--sage-700)">${escapeHTML(ticketId)}</strong> to a worker`;
+
+      const select = document.getElementById("workerSelect");
+      if (!allWorkers.length) {
+        select.innerHTML = `<option value="">No workers available</option>`;
+      } else {
+        select.innerHTML = `<option value="">— Select worker —</option>` +
+          allWorkers.map(w => `
+            <option value="${w.id}">
+              ${escapeHTML(w.name)} · ${w.zone || "No zone"} · ${w.in_progress || 0} active
+            </option>
+          `).join("");
+      }
+
+      document.getElementById("assignModal").style.display = "flex";
+    }
+
+    function closeAssignModal() {
+      document.getElementById("assignModal").style.display = "none";
+      assigningComplaintId = null;
+    }
+
+    async function confirmAssign() {
+      const workerId = document.getElementById("workerSelect").value;
+      if (!workerId) {
+        toast("Please select a worker", "warn");
+        return;
+      }
+
+      const btn = document.getElementById("assignBtn");
+      const restore = buttonLoading(btn, "Assigning...");
+
+      try {
+        const res = await apiPost(`/admin/complaints/${assigningComplaintId}/assign`, { worker_id: parseInt(workerId) });
+        toast(res.msg || "Worker assigned ✅", "success", 1800);
+        closeAssignModal();
+        await refreshAll();
+      } catch (err) {
+        restore();
+        toast(err.message || "Failed to assign", "error");
+      }
+    }
+
+    document.querySelectorAll("#filterTabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#filterTabs button").forEach((b) => {
+          b.classList.remove("btn-primary");
+          b.classList.add("btn-ghost");
+        });
+        btn.classList.remove("btn-ghost");
+        btn.classList.add("btn-primary");
+        currentFilter = btn.dataset.filter;
+        renderComplaints();
+      });
+    });
+
+    setInterval(() => { loadStats(); loadComplaints(); }, 30000);
+    refreshAll();
+  </script>
+</body>
+</html>

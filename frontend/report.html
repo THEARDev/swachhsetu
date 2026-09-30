@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Report Issue — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu</a>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="report-wrap">
+
+      <div class="report-header">
+        <h2>Report Waste Issue 📸</h2>
+        <p>Photo aur location ke saath issue report karo — seconds mein</p>
+      </div>
+
+      <div class="card">
+        <form id="reportForm" enctype="multipart/form-data">
+
+          <div class="form-group">
+            <label for="category">Issue Category *</label>
+            <select id="category" name="category" class="select" required>
+              <option value="">— Select category (or let AI/NLP detect) —</option>
+              <option value="overflow">🗑️ Overflowing Bin</option>
+              <option value="road">🛣️ Garbage on Road</option>
+              <option value="illegal">🚫 Illegal Dumping</option>
+              <option value="missed">⏰ Missed Collection</option>
+              <option value="other">📌 Other</option>
+            </select>
+            <small class="text-muted" style="font-size:0.8rem;display:block;margin-top:6px">
+              Empty chhod do toh NLP auto-detect karega.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea id="description" name="description" class="textarea" placeholder="Issue ke baare mein detail mein batao — Hindi ya English dono chalega..." minlength="10" maxlength="500" required></textarea>
+            <small class="text-muted" style="font-size:0.8rem">
+              <span id="descCount">0</span>/500 characters
+            </small>
+
+            <!-- 🤖 NLP Live Preview -->
+            <div id="nlpPreview" style="display:none;margin-top:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(180,255,61,0.08),rgba(0,212,184,0.08));border:1px solid rgba(180,255,61,0.3);border-radius:12px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:600;font-size:0.88rem">
+                <span>🤖</span>
+                <span>NLP Auto-detection</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:0.82rem;align-items:center">
+                <span style="display:inline-flex;align-items:center;gap:6px">
+                  <strong style="color:var(--text-muted)">Category:</strong>
+                  <span id="nlpCategory" class="badge">—</span>
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:6px">
+                  <strong style="color:var(--text-muted)">Priority:</strong>
+                  <span id="nlpPriority" class="badge">—</span>
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:6px">
+                  <strong style="color:var(--text-muted)">Language:</strong>
+                  <span id="nlpLanguage" style="font-size:0.82rem;color:var(--text)">—</span>
+                </span>
+              </div>
+              <div id="nlpKeywordsWrap" style="display:none;margin-top:10px;font-size:0.78rem">
+                <strong style="color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Keywords:</strong>
+                <span id="nlpKeywords" style="margin-left:4px"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="image">Photo (optional)</label>
+            <input type="file" id="image" name="image" accept="image/*" capture="environment">
+            <small class="text-muted" style="font-size:0.8rem;display:block;margin-top:6px">
+              Max 5MB. AI automatically waste type classify karega.
+            </small>
+            <div id="imagePreview" style="margin-top:14px;display:none">
+              <img id="previewImg" style="width:100%;max-height:280px;object-fit:cover;border-radius:var(--r-md);border:1px solid var(--border)">
+              <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="clearImage()">✕ Remove Image</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Location *</label>
+            <div class="location-row">
+              <input type="text" id="address" name="address" class="input" placeholder="Click 📍 to auto-detect" required readonly>
+              <button type="button" class="btn btn-accent" id="locBtn" onclick="getLocation()">📍 Detect</button>
+            </div>
+            <small class="text-muted" style="font-size:0.8rem;display:block;margin-top:6px">
+              Location share karne se admin ko exact spot milta hai.
+            </small>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn" style="margin-top:20px">
+            🚀 Submit Complaint
+          </button>
+
+        </form>
+      </div>
+
+      <div class="card" style="margin-top:20px;background:rgba(180,255,61,0.06);border-color:rgba(180,255,61,0.25)">
+        <h4 style="margin-bottom:8px">💡 Tips</h4>
+        <ul style="padding-left:20px;font-size:0.9rem;color:var(--text-muted);line-height:1.8">
+          <li>Clear photo lo — problem dikhni chahiye</li>
+          <li>Exact location detect karo</li>
+          <li>Description detail mein likho — Hindi ya English</li>
+          <li>NLP automatically category & priority detect karega</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error("Not authenticated");
+
+    const reportForm = document.getElementById("reportForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const imageInput = document.getElementById("image");
+    const previewDiv = document.getElementById("imagePreview");
+    const previewImg = document.getElementById("previewImg");
+    const descInput = document.getElementById("description");
+    const descCount = document.getElementById("descCount");
+    const locBtn = document.getElementById("locBtn");
+    const addressInput = document.getElementById("address");
+
+    let coords = { lat: null, lng: null };
+    let nlpTimer = null;
+
+    descInput.addEventListener("input", () => {
+      descCount.textContent = descInput.value.length;
+
+      // NLP debounced call
+      clearTimeout(nlpTimer);
+      const text = descInput.value.trim();
+
+      if (text.length < 8) {
+        document.getElementById("nlpPreview").style.display = "none";
+        return;
+      }
+
+      nlpTimer = setTimeout(() => runNlpAnalysis(text), 500);
+    });
+
+    async function runNlpAnalysis(text) {
+      try {
+        const res = await api("/complaints/analyze", "POST", { description: text });
+        const preview = document.getElementById("nlpPreview");
+
+        // Category
+        const catEl = document.getElementById("nlpCategory");
+        if (res.category && res.category !== "other") {
+          catEl.textContent = categoryLabel(res.category);
+          catEl.className = "badge badge-" + res.category;
+        } else {
+          catEl.textContent = "—";
+          catEl.className = "badge";
+        }
+
+        // Priority
+        const priEl = document.getElementById("nlpPriority");
+        const priorityIcons = { high: "🔴", medium: "🟡", low: "🟢" };
+        if (res.priority) {
+          priEl.textContent = (priorityIcons[res.priority] || "") + " " + res.priority.toUpperCase();
+          priEl.className = "badge badge-" + res.priority;
+        } else {
+          priEl.textContent = "—";
+          priEl.className = "badge";
+        }
+
+        // Language
+        const langEl = document.getElementById("nlpLanguage");
+        langEl.textContent = res.language === "hindi" ? "🇮🇳 Hindi" : "🇬🇧 English";
+
+        // Keywords
+        if (res.keywords && res.keywords.length) {
+          document.getElementById("nlpKeywords").innerHTML = res.keywords
+            .map(k => `<span style="background:var(--lime-100);color:var(--ink-900);padding:2px 8px;border-radius:100px;margin-right:4px">${escapeHTML(k)}</span>`)
+            .join("");
+          document.getElementById("nlpKeywordsWrap").style.display = "block";
+        } else {
+          document.getElementById("nlpKeywordsWrap").style.display = "none";
+        }
+
+        preview.style.display = "block";
+
+        // Auto-select category if user hasn't selected
+        const catSelect = document.getElementById("category");
+        if (!catSelect.value && res.category && res.category !== "other") {
+          catSelect.value = res.category;
+        }
+
+      } catch (err) {
+        console.warn("NLP analysis failed:", err);
+      }
+    }
+
+    imageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        toast("Image too large. Max 5MB.", "error");
+        e.target.value = ""; return;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast("Please select an image file", "error");
+        e.target.value = ""; return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        previewImg.src = ev.target.result;
+        previewDiv.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function clearImage() {
+      imageInput.value = "";
+      previewDiv.style.display = "none";
+      previewImg.src = "";
+    }
+
+    function getLocation() {
+      if (!navigator.geolocation) {
+        toast("Geolocation not supported", "error");
+        return;
+      }
+      const restore = buttonLoading(locBtn, "Getting...");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          coords.lat = pos.coords.latitude;
+          coords.lng = pos.coords.longitude;
+          addressInput.value = coords.lat.toFixed(5) + ", " + coords.lng.toFixed(5);
+          toast("Location detected ✅", "success", 1500);
+          restore();
+        },
+        (err) => {
+          restore();
+          let msg = "Could not get location";
+          if (err.code === 1) msg = "Location permission denied";
+          else if (err.code === 2) msg = "Location unavailable";
+          else if (err.code === 3) msg = "Location timeout";
+          toast(msg, "error");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    reportForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const category = reportForm.category.value;
+      const description = descInput.value.trim();
+      const address = addressInput.value.trim();
+
+      if (description.length < 10) { toast("Description must be at least 10 characters", "warn"); return; }
+      if (!coords.lat || !coords.lng) { toast("Please detect location first 📍", "warn"); return; }
+
+      const fd = new FormData();
+      fd.append("category", category);
+      fd.append("description", description);
+      fd.append("address", address);
+      fd.append("lat", coords.lat);
+      fd.append("lng", coords.lng);
+      if (imageInput.files[0]) fd.append("image", imageInput.files[0]);
+
+      const restore = buttonLoading(submitBtn, "Analyzing...");
+      try {
+        const res = await apiForm("/complaints/", fd);
+
+        let msg = `Ticket: ${res.ticket_id}`;
+        if (res.ai_tag && res.ai_tag !== "unknown") msg += ` · AI: ${res.ai_tag}`;
+        if (res.priority) msg += ` · ${res.priority.toUpperCase()}`;
+
+        toast(`Complaint submitted! ${msg}`, "success", 3500);
+
+        if (typeof fireConfetti === "function") fireConfetti(80);
+
+        setTimeout(() => {
+          window.location.href = "/track.html?id=" + encodeURIComponent(res.ticket_id);
+        }, 1500);
+      } catch (err) {
+        restore();
+        toast(err.message || "Submission failed", "error", 4000);
+      }
+    });
+  </script>
+</body>
+</html>

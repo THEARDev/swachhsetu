@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Track Complaint — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu</a>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="track-wrap">
+
+      <div class="report-header">
+        <h2>Track Your Complaint 🔍</h2>
+        <p>Ticket ID daalo aur real-time status dekho</p>
+      </div>
+
+      <div class="track-search">
+        <input type="text" id="ticketInput" class="input" placeholder="Enter Ticket ID (e.g. WM1A2B3C4D)" autocomplete="off" spellcheck="false">
+        <button class="btn btn-primary" id="trackBtn" onclick="trackComplaint()">🔍 Track</button>
+      </div>
+
+      <div id="resultArea"></div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error("Not authenticated");
+
+    const ticketInput = document.getElementById("ticketInput");
+    const trackBtn = document.getElementById("trackBtn");
+    const resultArea = document.getElementById("resultArea");
+
+    const TIMELINE_STEPS = [
+      { key: "submitted",   label: "Submitted" },
+      { key: "acknowledged",label: "Acknowledged" },
+      { key: "in_progress", label: "In Progress" },
+      { key: "resolved",    label: "Resolved" },
+    ];
+
+    function renderTimeline(currentStatus) {
+      const currentIdx = TIMELINE_STEPS.findIndex((s) => s.key === currentStatus);
+      return `
+        <div class="timeline">
+          ${TIMELINE_STEPS.map((step, i) => {
+            let cls = "tl-step";
+            if (i < currentIdx) cls += " done";
+            else if (i === currentIdx) cls += " done current";
+            return `<div class="${cls}">${step.label}</div>`;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderResult(c) {
+      const imageHTML = c.image_url
+        ? `<img src="${escapeHTML(c.image_url)}" class="track-image" alt="Complaint photo">`
+        : "";
+      const timelineHTML = renderTimeline(c.status);
+      const logsHTML = c.timeline && c.timeline.length ? `
+        <div style="margin-top:24px">
+          <h4 style="margin-bottom:12px">📋 Activity Log</h4>
+          <ul style="list-style:none;padding:0">
+            ${c.timeline.map((l) => `
+              <li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+                <span style="color:var(--magenta-500);font-size:1.2rem;line-height:1">●</span>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.95rem">${statusLabel(l.status)}</div>
+                  ${l.remark ? `<div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px">${escapeHTML(l.remark)}</div>` : ""}
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">${formatDate(l.at)}</div>
+                </div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+      ` : "";
+
+      // NLP badges
+      const nlpBadges = [];
+      if (c.ai_tag && c.ai_tag !== "unknown") {
+        nlpBadges.push(`<span class="badge badge-resolved">🤖 AI: ${c.ai_tag}</span>`);
+      }
+      if (c.nlp_category && c.nlp_category !== "other" && c.nlp_category !== c.category) {
+        nlpBadges.push(`<span class="badge badge-progress">🧠 NLP: ${categoryLabel(c.nlp_category)}</span>`);
+      }
+      if (c.language === "hindi") {
+        nlpBadges.push(`<span class="badge badge-closed">🇮🇳 Hindi detected</span>`);
+      }
+
+      const keywordsHTML = c.keywords ? `
+        <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+          <strong style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em">Detected Keywords</strong>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+            ${c.keywords.split(",").filter(k => k.trim()).map(k => 
+              `<span style="background:var(--lime-100);color:var(--ink-900);padding:3px 10px;border-radius:100px;font-size:0.78rem;font-weight:500">${escapeHTML(k.trim())}</span>`
+            ).join("")}
+          </div>
+        </div>
+      ` : "";
+
+      resultArea.innerHTML = `
+        <div class="track-result">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px">
+            <h3 style="margin:0;font-family:monospace;letter-spacing:0.05em;color:var(--magenta-500)">${escapeHTML(c.ticket_id)}</h3>
+            ${statusBadge(c.status)}
+          </div>
+
+          ${nlpBadges.length ? `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px">
+              ${nlpBadges.join("")}
+            </div>
+          ` : ""}
+
+          ${timelineHTML}
+
+          <div class="track-meta">
+            <div class="item">
+              <div class="label">Category</div>
+              <div class="value">${categoryLabel(c.category)}</div>
+            </div>
+            <div class="item">
+              <div class="label">Priority</div>
+              <div class="value">${priorityBadge(c.priority)}</div>
+            </div>
+            <div class="item">
+              <div class="label">Reported</div>
+              <div class="value">${timeAgo(c.created_at)}</div>
+            </div>
+            <div class="item">
+              <div class="label">Location</div>
+              <div class="value">${escapeHTML(truncate(c.address || "-", 30))}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:8px">
+            <div class="label" style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Description</div>
+            <p style="font-size:0.95rem;line-height:1.6;margin:0">${escapeHTML(c.description || "-")}</p>
+          </div>
+
+          ${keywordsHTML}
+          ${imageHTML}
+          ${logsHTML}
+
+          <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="copyToClipboard('${escapeHTML(c.ticket_id)}')">📋 Copy Ticket ID</button>
+            <a href="report.html" class="btn btn-ghost btn-sm">📸 Report Another</a>
+          </div>
+        </div>
+      `;
+    }
+
+    async function trackComplaint() {
+      const id = ticketInput.value.trim().toUpperCase();
+      if (!id) { toast("Please enter a ticket ID", "warn"); return; }
+      const restore = buttonLoading(trackBtn, "Searching...");
+      showLoader(resultArea);
+      try {
+        const c = await apiGet("/complaints/track/" + encodeURIComponent(id));
+        renderResult(c);
+        toast("Complaint found ✅", "success", 1500);
+      } catch (err) {
+        resultArea.innerHTML = emptyState(
+          "🔍",
+          "Complaint not found",
+          "Ticket ID check karo ya naya complaint report karo.",
+          `<a href="report.html" class="btn btn-primary" style="margin-top:14px">📸 Report Issue</a>`
+        );
+        toast(err.message || "Not found", "error");
+      } finally {
+        restore();
+      }
+    }
+
+    ticketInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); trackComplaint(); }
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketFromURL = urlParams.get("id");
+    if (ticketFromURL) {
+      ticketInput.value = ticketFromURL;
+      trackComplaint();
+    } else {
+      resultArea.innerHTML = emptyState("📭", "No complaint loaded", "Apna ticket ID upar daalo aur Track button click karo.");
+    }
+  </script>
+</body>
+</html>

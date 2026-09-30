@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-split">
+
+    <div class="auth-visual">
+      <div class="auth-visual-top">
+        <a href="/" class="auth-brand">
+          <span class="brand-mark">♻</span>
+          <span class="brand-name">SwachhSetu</span>
+        </a>
+
+        <div class="auth-visual-content">
+          <div class="auth-eyebrow">
+            <span class="pulse-dot"></span>
+            Free forever · No credit card
+          </div>
+
+          <h1>
+            Join the movement.<br>
+            Make your city<br>
+            <span class="grad-text">shine bright.</span>
+          </h1>
+
+          <p class="auth-visual-lead">
+            Ek account banao aur apne sheher ko swachh banane ki
+            mission ka part bano — citizen, admin, ya ground worker.
+          </p>
+
+          <div class="auth-features">
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">👤</div>
+              <div>
+                <div class="auth-feature-title">Citizen</div>
+                <div class="auth-feature-desc">Report & track issues</div>
+              </div>
+            </div>
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">🛡️</div>
+              <div>
+                <div class="auth-feature-title">Admin</div>
+                <div class="auth-feature-desc">Manage complaints</div>
+              </div>
+            </div>
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">👷</div>
+              <div>
+                <div class="auth-feature-title">Worker</div>
+                <div class="auth-feature-desc">Ground staff - resolve tasks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-visual-bottom">
+        <div class="auth-stat">
+          <div class="num">50+</div>
+          <div class="lbl">Cities</div>
+        </div>
+        <div class="auth-stat">
+          <div class="num">10K+</div>
+          <div class="lbl">Citizens</div>
+        </div>
+        <div class="auth-stat">
+          <div class="num">100%</div>
+          <div class="lbl">Free</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-form-side">
+
+      <div class="auth-card-clean">
+
+        <a href="/" class="auth-back">← Back to home</a>
+
+        <div class="auth-form-header">
+          <h2>Create Account</h2>
+          <p>Bas 1 minute — aur swachh sheher ki taraf pehla kadam</p>
+        </div>
+
+        <form id="registerForm" autocomplete="on">
+
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <div class="input-with-icon">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              <input type="text" id="name" name="name" class="input input-icon-pad" placeholder="Rahul Sharma" autocomplete="name" minlength="2" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <div class="input-with-icon">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input type="email" id="email" name="email" class="input input-icon-pad" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone <span class="text-muted" style="font-weight:400;font-size:0.82rem">(optional)</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+              </span>
+              <input type="tel" id="phone" name="phone" class="input input-icon-pad" placeholder="9876543210" autocomplete="tel" pattern="[0-9]{10}" maxlength="10">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-with-icon">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="password" name="password" class="input input-icon-pad input-icon-pad-right" placeholder="Minimum 6 characters" autocomplete="new-password" minlength="6" required>
+              <button type="button" class="input-icon-right" onclick="togglePassword()" aria-label="Toggle password">
+                <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="password-strength" id="passwordStrength">
+              <div class="strength-bars">
+                <div class="strength-bar" data-level="1"></div>
+                <div class="strength-bar" data-level="2"></div>
+                <div class="strength-bar" data-level="3"></div>
+                <div class="strength-bar" data-level="4"></div>
+              </div>
+              <span class="strength-label" id="strengthLabel">Enter password</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>I am a</label>
+            <div class="role-selector" id="roleSelector" style="grid-template-columns: 1fr 1fr 1fr">
+              <label class="role-option">
+                <input type="radio" name="role" value="citizen" checked>
+                <div class="role-card">
+                  <div class="role-icon">👤</div>
+                  <div class="role-info">
+                    <div class="role-title">Citizen</div>
+                    <div class="role-desc">Report issues</div>
+                  </div>
+                  <div class="role-check">✓</div>
+                </div>
+              </label>
+
+              <label class="role-option">
+                <input type="radio" name="role" value="admin">
+                <div class="role-card">
+                  <div class="role-icon">🛡️</div>
+                  <div class="role-info">
+                    <div class="role-title">Admin</div>
+                    <div class="role-desc">Manage</div>
+                  </div>
+                  <div class="role-check">✓</div>
+                </div>
+              </label>
+
+              <label class="role-option">
+                <input type="radio" name="role" value="worker">
+                <div class="role-card">
+                  <div class="role-icon">👷</div>
+                  <div class="role-info">
+                    <div class="role-title">Worker</div>
+                    <div class="role-desc">Ground staff</div>
+                  </div>
+                  <div class="role-check">✓</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="zoneGroup" style="display:none">
+            <label for="zone">Assigned Zone (Worker)</label>
+            <input type="text" id="zone" name="zone" class="input" placeholder="Mumbai Zone 3">
+            <small class="text-muted" style="font-size:0.8rem;display:block;margin-top:6px">
+              Aapka work area — jaise "Mumbai Zone 3"
+            </small>
+          </div>
+
+          <div class="form-row-between">
+            <label class="checkbox-label">
+              <input type="checkbox" id="terms" required>
+              <span class="checkbox-custom"></span>
+              <span>I agree to the <a href="#" style="color:var(--sage-700);font-weight:600" onclick="event.preventDefault();toast('Terms page coming soon!','info')">Terms</a> & <a href="#" style="color:var(--sage-700);font-weight:600" onclick="event.preventDefault();toast('Privacy page coming soon!','info')">Privacy</a></span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="registerBtn" style="margin-top:8px">
+            Create Account →
+          </button>
+
+        </form>
+
+        <div class="auth-footer">
+          Already have an account?
+          <a href="login.html">Login →</a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (isLoggedIn()) {
+      const role = localStorage.getItem("role");
+      const redirect = { admin: "/admin.html", worker: "/worker.html", citizen: "/dashboard.html" };
+      window.location.href = redirect[role] || "/dashboard.html";
+    }
+
+    function togglePassword() {
+      const input = document.getElementById("password");
+      const icon = document.getElementById("eyeIcon");
+      if (input.type === "password") {
+        input.type = "text";
+        icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+      } else {
+        input.type = "password";
+        icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+      }
+    }
+
+    const passwordInput = document.getElementById("password");
+    const strengthBars = document.querySelectorAll(".strength-bar");
+    const strengthLabel = document.getElementById("strengthLabel");
+
+    passwordInput.addEventListener("input", () => {
+      const val = passwordInput.value;
+      let strength = 0;
+      if (val.length >= 6) strength++;
+      if (/[A-Z]/.test(val)) strength++;
+      if (/[0-9]/.test(val)) strength++;
+      if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+      strengthBars.forEach((bar, i) => {
+        bar.classList.remove("active", "weak", "fair", "good", "strong");
+        if (i < strength) {
+          bar.classList.add("active");
+          if (strength === 1) bar.classList.add("weak");
+          else if (strength === 2) bar.classList.add("fair");
+          else if (strength === 3) bar.classList.add("good");
+          else if (strength === 4) bar.classList.add("strong");
+        }
+      });
+
+      const labels = ["Enter password", "Weak", "Fair", "Good", "Strong 💪"];
+      const colors = ["var(--text-muted)", "var(--rose-600)", "var(--terra-600)", "var(--ocean-600)", "var(--sage-600)"];
+      strengthLabel.textContent = labels[strength];
+      strengthLabel.style.color = colors[strength];
+    });
+
+    // Show zone field when worker selected
+    document.querySelectorAll('input[name="role"]').forEach((radio) => {
+      radio.addEventListener("change", (e) => {
+        document.getElementById("zoneGroup").style.display =
+          e.target.value === "worker" ? "block" : "none";
+      });
+    });
+
+    const registerForm = document.getElementById("registerForm");
+    const registerBtn = document.getElementById("registerBtn");
+
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = formToObject(registerForm);
+      if (!data.name || data.name.trim().length < 2) { toast("Please enter a valid name", "warn"); return; }
+      if (!data.email || !data.password) { toast("Email and password required", "warn"); return; }
+      if (data.password.length < 6) { toast("Password must be at least 6 characters", "warn"); return; }
+      if (data.phone && !/^[0-9]{10}$/.test(data.phone)) { toast("Phone must be 10 digits", "warn"); return; }
+      if (data.role === "worker" && !data.zone) { toast("Please enter your assigned zone", "warn"); return; }
+      if (!document.getElementById("terms").checked) { toast("Please accept Terms & Privacy", "warn"); return; }
+
+      const restore = buttonLoading(registerBtn, "Creating account...");
+      try {
+        await api("/auth/register", "POST", {
+          name: data.name.trim(),
+          email: data.email.trim().toLowerCase(),
+          phone: data.phone || "",
+          password: data.password,
+          role: data.role,
+          zone: data.zone || "",
+        });
+        toast("Account created! Redirecting to login...", "success", 1500);
+        setTimeout(() => { window.location.href = "/login.html"; }, 1200);
+      } catch (err) {
+        restore();
+        toast(err.message || "Registration failed", "error");
+      }
+    });
+  </script>
+</body>
+</html>

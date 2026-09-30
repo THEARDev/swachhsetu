@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Dashboard — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu</a>
+    <div class="nav-links">
+      <a href="awareness.html">Awareness</a>
+      <span id="userGreet" class="text-muted" style="font-size:0.9rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container">
+
+      <div class="welcome-banner fade-in">
+        <h2 id="welcomeTitle">Welcome back 👋</h2>
+        <p>Chalo, apni city ko clean banate hain — ek complaint at a time.</p>
+      </div>
+
+      <div class="section-head">
+        <h3>Quick Actions</h3>
+      </div>
+
+      <div class="quick-actions">
+        <a href="report.html" class="qa-card">
+          <div class="qa-icon">📸</div>
+          <div>
+            <div class="qa-title">Report Issue</div>
+            <div class="qa-desc">Photo + GPS ke saath</div>
+          </div>
+        </a>
+        <a href="track.html" class="qa-card">
+          <div class="qa-icon">📍</div>
+          <div>
+            <div class="qa-title">Track Complaint</div>
+            <div class="qa-desc">Ticket ID se status</div>
+          </div>
+        </a>
+        <a href="awareness.html" class="qa-card">
+          <div class="qa-icon">🌿</div>
+          <div>
+            <div class="qa-title">Awareness</div>
+            <div class="qa-desc">Segregation guide</div>
+          </div>
+        </a>
+        <a href="report.html" class="qa-card">
+          <div class="qa-icon">⚡</div>
+          <div>
+            <div class="qa-title">Quick Report</div>
+            <div class="qa-desc">Ek click mein complaint</div>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-head">
+        <h3>My Complaints</h3>
+        <button class="btn btn-ghost btn-sm" onclick="loadMyComplaints()">🔄 Refresh</button>
+      </div>
+
+      <div id="complaintsArea">
+        <div class="loader"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (!requireAuth()) throw new Error("Not authenticated");
+    if (isAdmin()) window.location.replace("/admin.html");
+
+    const userName = localStorage.getItem("name") || "User";
+    const firstName = userName.split(" ")[0];
+    document.getElementById("userGreet").textContent = `Hi, ${firstName}`;
+    document.getElementById("welcomeTitle").textContent = `Welcome back, ${firstName} 👋`;
+
+    async function loadMyComplaints() {
+      const area = document.getElementById("complaintsArea");
+      showLoader(area);
+      try {
+        const items = await apiGet("/complaints/my");
+        if (!items || items.length === 0) {
+          area.innerHTML = emptyState(
+            "📭",
+            "No complaints yet",
+            "Apni pehli waste issue report karo aur city clean banane mein help karo.",
+            `<a href="report.html" class="btn btn-primary" style="margin-top:14px">📸 Report Your First Issue</a>`
+          );
+          return;
+        }
+        const rows = items.map((c) => `
+          <tr>
+            <td><strong style="font-family:monospace;color:var(--magenta-500)">${escapeHTML(c.ticket_id)}</strong></td>
+            <td>${categoryBadge(c.category)}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td>${escapeHTML(truncate(c.address || "-", 40))}</td>
+            <td style="color:var(--text-muted);font-size:0.85rem">${timeAgo(c.created_at)}</td>
+            <td><a href="track.html?id=${encodeURIComponent(c.ticket_id)}" class="btn btn-ghost btn-sm">View</a></td>
+          </tr>
+        `).join("");
+        area.innerHTML = `
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Location</th>
+                  <th>Reported</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
+      } catch (err) {
+        area.innerHTML = emptyState("⚠️", "Could not load complaints", err.message || "Please try again.");
+        toast(err.message || "Failed to load", "error");
+      }
+    }
+    loadMyComplaints();
+  </script>
+</body>
+</html>

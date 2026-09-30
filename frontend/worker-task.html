@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Task Detail — SwachhSetu Worker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu <span style="font-size:0.7rem;opacity:0.6;font-weight:600">WORKER</span></a>
+    <div class="nav-links">
+      <a href="worker.html">← Dashboard</a>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container-sm">
+
+      <div id="taskArea">
+        <div class="loader"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (!isLoggedIn()) {
+      window.location.replace("/login.html");
+      throw new Error("Not authenticated");
+    }
+    if (localStorage.getItem("role") !== "worker") {
+      window.location.replace("/");
+      throw new Error("Not a worker");
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const taskId = urlParams.get("id");
+
+    if (!taskId) {
+      window.location.href = "/worker.html";
+    }
+
+    let task = null;
+
+    async function loadTask() {
+      const area = document.getElementById("taskArea");
+      showLoader(area);
+      try {
+        task = await apiGet("/worker/task/" + taskId);
+        renderTask();
+      } catch (err) {
+        area.innerHTML = emptyState("⚠️", "Task not found", err.message || "Please go back.");
+        toast(err.message || "Failed to load", "error");
+      }
+    }
+
+    function renderTask() {
+      const c = task;
+      const area = document.getElementById("taskArea");
+      const isResolved = c.status === "resolved";
+      const isProgress = c.status === "in_progress";
+
+      const beforeImage = c.image_url
+        ? `<img src="${escapeHTML(c.image_url)}" style="width:100%;border-radius:12px;border:1px solid var(--border)">`
+        : `<div style="padding:40px;text-align:center;color:var(--text-muted);background:var(--ink-50);border-radius:12px">No photo uploaded</div>`;
+
+      const proofImage = c.proof_image_url
+        ? `<img src="${escapeHTML(c.proof_image_url)}" style="width:100%;border-radius:12px;border:2px solid var(--sage-500)">`
+        : "";
+
+      const logsHTML = c.timeline && c.timeline.length ? `
+        <div style="margin-top:24px">
+          <h4 style="margin-bottom:12px">📋 Activity Log</h4>
+          <ul style="list-style:none;padding:0">
+            ${c.timeline.map((l) => `
+              <li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+                <span style="color:var(--sage-600);font-size:1.2rem;line-height:1">●</span>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.95rem">${statusLabel(l.new_status || l.status)}</div>
+                  ${l.remark ? `<div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px">${escapeHTML(l.remark)}</div>` : ""}
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">${formatDate(l.timestamp || l.at)}</div>
+                </div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+      ` : "";
+
+      area.innerHTML = `
+        <div class="card" style="border-left:4px solid var(--sage-500)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+                <h2 style="margin:0;font-family:monospace;color:var(--sage-700);font-size:1.35rem">${escapeHTML(c.ticket_id)}</h2>
+                ${priorityBadge(c.priority)}
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                ${statusBadge(c.status)}
+                ${categoryBadge(c.category)}
+                ${c.ai_tag && c.ai_tag !== "unknown" ? `<span class="badge badge-resolved">🤖 AI: ${c.ai_tag}</span>` : ""}
+              </div>
+            </div>
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div style="margin-bottom:20px;padding:16px;background:var(--ink-50);border-radius:12px">
+            <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Citizen Description</div>
+            <p style="font-size:0.95rem;line-height:1.6;margin:0;color:var(--ink-900)">${escapeHTML(c.description || "-")}</p>
+          </div>
+
+          <!-- LOCATION -->
+          <div style="margin-bottom:20px;padding:16px;background:linear-gradient(135deg, #E8F0E9, #D0E0D3);border-radius:12px">
+            <div style="font-size:0.72rem;color:var(--sage-800);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">📍 Location</div>
+            <div style="font-size:0.95rem;color:var(--ink-900);margin-bottom:12px">
+              ${escapeHTML(c.address || "Coordinates available")}
+            </div>
+            <a href="https://www.google.com/maps?q=${c.lat},${c.lng}" target="_blank" class="btn btn-primary btn-sm">
+              🗺️ Get Directions in Google Maps
+            </a>
+          </div>
+
+          <!-- BEFORE PHOTO -->
+          <div style="margin-bottom:20px">
+            <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">📸 Citizen Photo (Before)</div>
+            ${beforeImage}
+          </div>
+
+          ${isResolved ? `
+            <!-- PROOF OF WORK -->
+            <div style="margin-bottom:20px">
+              <div style="font-size:0.72rem;color:var(--sage-700);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">✅ Your Proof (After)</div>
+              ${proofImage || '<div style="padding:30px;text-align:center;color:var(--text-muted);background:var(--ink-50);border-radius:12px">No proof photo uploaded</div>'}
+              ${c.worker_remarks ? `
+                <div style="margin-top:12px;padding:14px;background:var(--sage-100);border-radius:12px;border-left:3px solid var(--sage-600)">
+                  <div style="font-size:0.72rem;color:var(--sage-800);font-weight:700;text-transform:uppercase;margin-bottom:6px">Your Remarks</div>
+                  <div style="font-size:0.9rem;color:var(--ink-900)">${escapeHTML(c.worker_remarks)}</div>
+                </div>
+              ` : ""}
+            </div>
+          ` : ""}
+
+          ${logsHTML}
+
+          <!-- ACTION BUTTONS -->
+          <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+            ${c.status === "submitted" || c.status === "acknowledged" ? `
+              <button class="btn btn-primary btn-lg" onclick="startTask()">🚀 Start Task</button>
+            ` : ""}
+            ${isProgress && !isResolved ? `
+              <button class="btn btn-primary btn-lg" onclick="openCompleteModal()">✅ Mark as Completed</button>
+            ` : ""}
+            <a href="worker.html" class="btn btn-ghost">← Back to Dashboard</a>
+          </div>
+        </div>
+
+        <!-- COMPLETE MODAL -->
+        <div id="completeModal" style="display:none;position:fixed;inset:0;background:rgba(26,20,16,0.6);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+          <div style="background:var(--card);border-radius:24px;padding:32px;max-width:500px;width:100%;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto">
+            <h3 style="margin-bottom:8px">✅ Complete Task</h3>
+            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:24px">
+              Proof photo upload karo aur remarks likho
+            </p>
+
+            <div class="form-group">
+              <label>After Photo (Proof) *</label>
+              <input type="file" id="proofImage" accept="image/*" capture="environment" required>
+              <small class="text-muted" style="font-size:0.78rem;display:block;margin-top:6px">
+                Cleaning ke baad ki photo. Max 5MB.
+              </small>
+              <div id="proofPreview" style="margin-top:12px;display:none">
+                <img id="proofPreviewImg" style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;border:2px solid var(--sage-500)">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Remarks (optional)</label>
+              <textarea id="remarks" class="textarea" placeholder="Jaise: 'Bin empty kar diya, area saaf kiya...'" maxlength="300" style="min-height:80px"></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:20px">
+              <button class="btn btn-ghost btn-block" onclick="closeCompleteModal()">Cancel</button>
+              <button class="btn btn-primary btn-block" id="completeBtn" onclick="completeTask()">✅ Submit</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Attach proof image preview
+      const proofInput = document.getElementById("proofImage");
+      if (proofInput) {
+        proofInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 5 * 1024 * 1024) {
+            toast("Image too large. Max 5MB.", "error");
+            e.target.value = ""; return;
+          }
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            document.getElementById("proofPreviewImg").src = ev.target.result;
+            document.getElementById("proofPreview").style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
+    async function startTask() {
+      try {
+        await apiPatch("/worker/tasks/" + taskId + "/start", {});
+        toast("Task started! 🚀", "success", 1500);
+        await loadTask();
+      } catch (err) {
+        toast(err.message || "Failed to start", "error");
+      }
+    }
+
+    function openCompleteModal() {
+      document.getElementById("completeModal").style.display = "flex";
+    }
+
+    function closeCompleteModal() {
+      document.getElementById("completeModal").style.display = "none";
+    }
+
+    async function completeTask() {
+      const proofFile = document.getElementById("proofImage").files[0];
+      const remarks = document.getElementById("remarks").value.trim();
+
+      if (!proofFile) {
+        toast("Please upload proof photo", "warn");
+        return;
+      }
+
+      const btn = document.getElementById("completeBtn");
+      const restore = buttonLoading(btn, "Uploading...");
+
+      const fd = new FormData();
+      fd.append("proof_image", proofFile);
+      fd.append("remarks", remarks);
+
+      try {
+        await api("/worker/tasks/" + taskId + "/complete", "POST", fd, true);
+        toast("Task completed! Great work ✅", "success", 2000);
+        closeCompleteModal();
+        if (typeof fireConfetti === "function") fireConfetti(80);
+        setTimeout(() => {
+          window.location.href = "/worker.html";
+        }, 1500);
+      } catch (err) {
+        restore();
+        toast(err.message || "Failed to complete", "error");
+      }
+    }
+
+    loadTask();
+  </script>
+</body>
+</html>

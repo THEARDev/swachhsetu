@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waste Awareness — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu</a>
+    <div class="nav-links">
+      <a href="dashboard.html" id="dashLink">Dashboard</a>
+      <button class="btn btn-ghost btn-sm" onclick="logout()" id="logoutBtn" style="display:none">Logout</button>
+      <a href="login.html" class="btn btn-primary btn-sm" id="loginBtn">Login</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="awareness-wrap">
+
+      <div class="awareness-header">
+        <h2>Waste Awareness Guide 🌿</h2>
+        <p>Sahi tarike se waste segregate karo — chhoti aadat, badi difference.</p>
+      </div>
+
+      <div class="awareness-grid">
+        <div class="aw-card wet" data-animate>
+          <div class="aw-icon">🟢</div>
+          <h3>Wet Waste</h3>
+          <p>Kitchen waste, vegetable peels, food scraps, tea leaves, egg shells, garden waste, flowers.</p>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.25);font-size:0.85rem;opacity:0.95">
+            <strong>Disposal:</strong> Green bin
+          </div>
+        </div>
+
+        <div class="aw-card dry" data-animate data-delay="1">
+          <div class="aw-icon">🔵</div>
+          <h3>Dry Waste</h3>
+          <p>Paper, cardboard, plastic bottles, glass, metal cans, tetra packs, packaging material, rubber.</p>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.25);font-size:0.85rem;opacity:0.95">
+            <strong>Disposal:</strong> Blue bin
+          </div>
+        </div>
+
+        <div class="aw-card hazardous" data-animate data-delay="2">
+          <div class="aw-icon">🔴</div>
+          <h3>Hazardous Waste</h3>
+          <p>Batteries, medicines, syringes, e-waste, paints, chemicals, CFL bulbs, sanitary waste.</p>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.25);font-size:0.85rem;opacity:0.95">
+            <strong>Disposal:</strong> Red bin / Special collection
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>Quick Rules 📋</h3>
+      </div>
+
+      <div class="dos-donts">
+        <div class="dd-card dos" data-animate>
+          <h3>✅ Do's</h3>
+          <ul>
+            <li>Waste ko source pe segregate karo</li>
+            <li>Wet waste ko compost banao</li>
+            <li>Dry waste ko recycle karo</li>
+            <li>Reusable bags use karo</li>
+            <li>Local kabadiwala ko dry waste do</li>
+            <li>Complaint report karo agar issue dikhe</li>
+          </ul>
+        </div>
+
+        <div class="dd-card donts" data-animate data-delay="1">
+          <h3>❌ Don'ts</h3>
+          <ul>
+            <li>Road pe kachra na phenko</li>
+            <li>Waste ko na jalao — pollution hota hai</li>
+            <li>Wet aur dry waste mix na karo</li>
+            <li>Public places pe littering na karo</li>
+            <li>Single-use plastic avoid karo</li>
+            <li>Drain mein waste na bahao</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>Did You Know? 💡</h3>
+      </div>
+
+      <div class="quick-actions" style="margin-bottom:32px">
+        <div class="qa-card" style="cursor:default" data-animate>
+          <div class="qa-icon">🌍</div>
+          <div>
+            <div class="qa-title">1.5 Lakh Tonnes</div>
+            <div class="qa-desc">India daily waste generate karta hai</div>
+          </div>
+        </div>
+        <div class="qa-card" style="cursor:default" data-animate data-delay="1">
+          <div class="qa-icon">♻️</div>
+          <div>
+            <div class="qa-title">Only 20% Recycled</div>
+            <div class="qa-desc">Baaki landfill mein jata hai</div>
+          </div>
+        </div>
+        <div class="qa-card" style="cursor:default" data-animate data-delay="2">
+          <div class="qa-icon">🌱</div>
+          <div>
+            <div class="qa-title">Compost = Gold</div>
+            <div class="qa-desc">Wet waste se best fertilizer banta hai</div>
+          </div>
+        </div>
+        <div class="qa-card" style="cursor:default" data-animate data-delay="3">
+          <div class="qa-icon">⏱️</div>
+          <div>
+            <div class="qa-title">500+ Years</div>
+            <div class="qa-desc">Plastic decompose hone mein time leta hai</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-box" style="padding:40px 30px" data-animate>
+        <h2 style="font-size:1.5rem">Kuch galat dikha? Report karo! 📸</h2>
+        <p>Aapki ek complaint se pura area clean ho sakta hai.</p>
+        <a href="report.html" class="btn btn-accent">Report Waste Issue →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (isLoggedIn()) {
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-flex";
+        const role = localStorage.getItem("role");
+        document.getElementById("dashLink").href = role === "admin" ? "admin.html" : "dashboard.html";
+      } else {
+        document.getElementById("dashLink").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>

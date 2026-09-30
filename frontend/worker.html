@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Worker Dashboard — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="logo"><span class="logo-mark">♻</span> SwachhSetu <span style="font-size:0.7rem;opacity:0.6;font-weight:600">WORKER</span></a>
+    <div class="nav-links">
+      <span class="text-muted" style="font-size:0.9rem" id="workerGreet"></span>
+      <span class="text-muted" style="font-size:0.85rem" id="workerZone"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="container">
+
+      <div class="admin-header">
+        <div>
+          <h2>Worker Dashboard 👷</h2>
+          <p class="text-muted" style="font-size:0.92rem;margin-top:2px">
+            Aapke assigned tasks, performance, aur daily stats
+          </p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="refreshAll()">🔄 Refresh</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Tasks</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-icon">📋</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="statPending">—</div>
+          <div class="stat-icon">⏳</div>
+        </div>
+        <div class="stat-card cool">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="statInProgress">—</div>
+          <div class="stat-icon">🔧</div>
+        </div>
+        <div class="stat-card rose">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="statCompleted">—</div>
+          <div class="stat-icon">✅</div>
+        </div>
+      </div>
+
+      <!-- TODAY STATS -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
+        <div class="stat-card" style="background:linear-gradient(135deg, #E8F0E9, #D0E0D3)">
+          <div class="stat-label">Today's Completed</div>
+          <div class="stat-value" id="statToday">—</div>
+          <div class="stat-icon">📅</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg, #FAE8DC, #F2D3C1)">
+          <div class="stat-label">Avg Completion Time</div>
+          <div class="stat-value" id="statAvgTime">—</div>
+          <div class="stat-icon">⏱️</div>
+        </div>
+        <div class="stat-card" style="background:linear-gradient(135deg, #E5EFF2, #C2D5DD)">
+          <div class="stat-label">Performance Rating</div>
+          <div class="stat-value" id="statRating">—</div>
+          <div class="stat-icon">⭐</div>
+        </div>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="section-head">
+        <h3>📋 My Tasks</h3>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="filterTabs">
+          <button class="btn btn-primary btn-sm" data-filter="all">All</button>
+          <button class="btn btn-ghost btn-sm" data-filter="submitted">Pending</button>
+          <button class="btn btn-ghost btn-sm" data-filter="in_progress">In Progress</button>
+          <button class="btn btn-ghost btn-sm" data-filter="resolved">Completed</button>
+        </div>
+      </div>
+
+      <div id="tasksArea">
+        <div class="loader"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Built with 💚 by <strong>SwachhSetu</strong> · © 2025</p>
+  </footer>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Worker auth check
+    if (!isLoggedIn()) {
+      window.location.replace("/login.html");
+      throw new Error("Not authenticated");
+    }
+    if (localStorage.getItem("role") !== "worker") {
+      const role = localStorage.getItem("role");
+      window.location.replace(role === "admin" ? "/admin.html" : "/dashboard.html");
+      throw new Error("Not a worker");
+    }
+
+    const workerName = localStorage.getItem("name") || "Worker";
+    const workerZone = localStorage.getItem("zone") || "";
+    document.getElementById("workerGreet").textContent = "Hi, " + workerName.split(" ")[0];
+    if (workerZone) {
+      document.getElementById("workerZone").textContent = "📍 " + workerZone;
+    }
+
+    let allTasks = [];
+    let currentFilter = "all";
+
+    function priorityColor(p) {
+      if (p === "high") return "#A8576B";
+      if (p === "medium") return "#D9825F";
+      return "#4A7C59";
+    }
+
+    function renderTasks() {
+      const area = document.getElementById("tasksArea");
+
+      const filtered = currentFilter === "all"
+        ? allTasks
+        : allTasks.filter((t) => t.status === currentFilter);
+
+      if (!filtered.length) {
+        area.innerHTML = emptyState(
+          "📭",
+          "No tasks" + (currentFilter !== "all" ? " in this filter" : ""),
+          "Jab admin aapko task assign karega, yahan dikhega."
+        );
+        return;
+      }
+
+      const cards = filtered.map((c) => {
+        const isResolved = c.status === "resolved";
+        const isProgress = c.status === "in_progress";
+        const isPending = c.status === "submitted" || c.status === "acknowledged";
+
+        return `
+          <div class="card" style="margin-bottom:16px;border-left:4px solid ${priorityColor(c.priority)}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+                  <strong style="font-family:monospace;color:var(--sage-700);font-size:1rem">${escapeHTML(c.ticket_id)}</strong>
+                  ${priorityBadge(c.priority)}
+                  ${statusBadge(c.status)}
+                </div>
+                <div style="font-weight:600;color:var(--ink-900);font-size:1rem;margin-bottom:4px">
+                  ${categoryLabel(c.category)}
+                </div>
+                <div style="font-size:0.88rem;color:var(--text-muted);max-width:600px">
+                  ${escapeHTML(truncate(c.description || "-", 100))}
+                </div>
+              </div>
+              <div style="text-align:right;font-size:0.8rem;color:var(--text-muted)">
+                <div>📅 ${timeAgo(c.created_at)}</div>
+                ${c.assigned_at ? `<div style="margin-top:4px">👤 Assigned ${timeAgo(c.assigned_at)}</div>` : ""}
+              </div>
+            </div>
+
+            <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.85rem;color:var(--text-muted);margin-bottom:16px;padding:12px;background:var(--ink-50);border-radius:10px">
+              <span>📍 ${escapeHTML(truncate(c.address || "-", 40))}</span>
+              ${c.ai_tag && c.ai_tag !== "unknown" ? `<span>🤖 ${escapeHTML(c.ai_tag)}</span>` : ""}
+              ${c.language === "hindi" ? `<span>🇮🇳 Hindi</span>` : ""}
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              ${c.image_url ? `<a href="${escapeHTML(c.image_url)}" target="_blank" class="btn btn-ghost btn-sm">📸 View Photo</a>` : ""}
+              <a href="https://www.google.com/maps?q=${c.lat},${c.lng}" target="_blank" class="btn btn-ghost btn-sm">🗺️ Navigate</a>
+
+              ${isPending ? `<button class="btn btn-primary btn-sm" onclick="startTask(${c.id})">🚀 Start Task</button>` : ""}
+              ${isProgress ? `<a href="worker-task.html?id=${c.id}" class="btn btn-primary btn-sm">✅ Complete Task</a>` : ""}
+              ${isResolved ? `<a href="worker-task.html?id=${c.id}" class="btn btn-ghost btn-sm">👁️ View Details</a>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      area.innerHTML = cards;
+    }
+
+    async function loadStats() {
+      try {
+        const s = await apiGet("/worker/stats");
+        document.getElementById("statTotal").textContent = s.total;
+        document.getElementById("statPending").textContent = s.pending;
+        document.getElementById("statInProgress").textContent = s.in_progress;
+        document.getElementById("statCompleted").textContent = s.completed;
+        document.getElementById("statToday").textContent = s.today_completed;
+        document.getElementById("statAvgTime").textContent = s.avg_completion_hours + "h";
+        document.getElementById("statRating").textContent = s.rating + "%";
+      } catch (err) {
+        console.error("Stats error:", err);
+      }
+    }
+
+    async function loadTasks() {
+      const area = document.getElementById("tasksArea");
+      showLoader(area);
+      try {
+        allTasks = await apiGet("/worker/tasks");
+        renderTasks();
+      } catch (err) {
+        area.innerHTML = emptyState("⚠️", "Could not load tasks", err.message || "Please try again.");
+        toast(err.message || "Failed to load", "error");
+      }
+    }
+
+    async function startTask(id) {
+      try {
+        await apiPatch("/worker/tasks/" + id + "/start", {});
+        toast("Task started! 🚀", "success", 1500);
+        await refreshAll();
+        setTimeout(() => {
+          window.location.href = "/worker-task.html?id=" + id;
+        }, 800);
+      } catch (err) {
+        toast(err.message || "Failed to start", "error");
+      }
+    }
+
+    async function refreshAll() {
+      await Promise.all([loadStats(), loadTasks()]);
+    }
+
+    document.querySelectorAll("#filterTabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#filterTabs button").forEach((b) => {
+          b.classList.remove("btn-primary");
+          b.classList.add("btn-ghost");
+        });
+        btn.classList.remove("btn-ghost");
+        btn.classList.add("btn-primary");
+        currentFilter = btn.dataset.filter;
+        renderTasks();
+      });
+    });
+
+    setInterval(() => { loadStats(); loadTasks(); }, 30000);
+    refreshAll();
+  </script>
+</body>
+</html>

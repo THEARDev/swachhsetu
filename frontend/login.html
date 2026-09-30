@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — SwachhSetu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-split">
+
+    <div class="auth-visual">
+      <div class="auth-visual-top">
+        <a href="/" class="auth-brand">
+          <span class="brand-mark">♻</span>
+          <span class="brand-name">SwachhSetu</span>
+        </a>
+
+        <div class="auth-visual-content">
+          <div class="auth-eyebrow">
+            <span class="pulse-dot"></span>
+            Trusted by 50+ cities
+          </div>
+
+          <h1>
+            Welcome back to your<br>
+            <span class="grad-text">clean city mission</span>
+          </h1>
+
+          <p class="auth-visual-lead">
+            Report waste issues, track complaints in real-time, aur
+            apne sheher ko swachh banane mein contribute karo.
+          </p>
+
+          <div class="auth-features">
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">📸</div>
+              <div>
+                <div class="auth-feature-title">Report with photo</div>
+                <div class="auth-feature-desc">Seconds mein issue file karo</div>
+              </div>
+            </div>
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">📍</div>
+              <div>
+                <div class="auth-feature-title">Real-time tracking</div>
+                <div class="auth-feature-desc">Ticket ID se status dekho</div>
+              </div>
+            </div>
+            <div class="auth-feature-item">
+              <div class="auth-feature-icon">👷</div>
+              <div>
+                <div class="auth-feature-title">Worker module</div>
+                <div class="auth-feature-desc">Ground staff task manager</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-visual-bottom">
+        <div class="auth-stat">
+          <div class="num">10K+</div>
+          <div class="lbl">Resolved</div>
+        </div>
+        <div class="auth-stat">
+          <div class="num">98%</div>
+          <div class="lbl">Rate</div>
+        </div>
+        <div class="auth-stat">
+          <div class="num">50+</div>
+          <div class="lbl">Cities</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-form-side">
+
+      <div class="auth-card-clean">
+
+        <a href="/" class="auth-back">← Back to home</a>
+
+        <div class="auth-form-header">
+          <h2>Welcome Back</h2>
+          <p>Login karo aur apna mission continue karo</p>
+        </div>
+
+        <form id="loginForm" autocomplete="on">
+
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <div class="input-with-icon">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input type="email" id="email" name="email" class="input input-icon-pad" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="password">Password</label>
+              <a href="#" class="forgot-link" onclick="event.preventDefault(); toast('Password reset coming soon!', 'info');">Forgot password?</a>
+            </div>
+            <div class="input-with-icon">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="password" name="password" class="input input-icon-pad input-icon-pad-right" placeholder="••••••••" autocomplete="current-password" minlength="6" required>
+              <button type="button" class="input-icon-right" onclick="togglePassword()" aria-label="Toggle password">
+                <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row-between">
+            <label class="checkbox-label">
+              <input type="checkbox" id="rememberMe" checked>
+              <span class="checkbox-custom"></span>
+              <span>Remember me</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn" style="margin-top:8px">
+            Login →
+          </button>
+
+        </form>
+
+        <div class="auth-footer">
+          Don't have an account?
+          <a href="register.html">Create one →</a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="toasts"></div>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    if (isLoggedIn()) {
+      const role = localStorage.getItem("role");
+      const redirect = { admin: "/admin.html", worker: "/worker.html", citizen: "/dashboard.html" };
+      window.location.href = redirect[role] || "/dashboard.html";
+    }
+
+    function togglePassword() {
+      const input = document.getElementById("password");
+      const icon = document.getElementById("eyeIcon");
+      if (input.type === "password") {
+        input.type = "text";
+        icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+      } else {
+        input.type = "password";
+        icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+      }
+    }
+
+    const loginForm = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("loginBtn");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = formToObject(loginForm);
+      if (!data.email || !data.password) {
+        toast("Please fill all fields", "warn");
+        return;
+      }
+      const restore = buttonLoading(loginBtn, "Logging in...");
+      try {
+        const res = await api("/auth/login", "POST", data);
+        saveAuth({ token: res.token, role: res.role, name: res.name });
+        if (res.zone) localStorage.setItem("zone", res.zone);
+
+        toast(`Welcome back, ${res.name}!`, "success", 1200);
+
+        const redirect = {
+          admin: "/admin.html",
+          worker: "/worker.html",
+          citizen: "/dashboard.html",
+        };
+
+        setTimeout(() => {
+          window.location.href = redirect[res.role] || "/dashboard.html";
+        }, 700);
+      } catch (err) {
+        restore();
+        toast(err.message || "Login failed", "error");
+      }
+    });
+  </script>
+</body>
+</html>
