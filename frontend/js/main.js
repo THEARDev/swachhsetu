@@ -1,7 +1,8 @@
 /* ============================================
    SWACHHSETU — MAIN.JS
    Scroll progress, animations, spotlight,
-   custom cursor, confetti, dark mode
+   confetti, dark mode
+   (Custom cursor disabled — native cursor active)
    ============================================ */
 
 /* ============ SCROLL PROGRESS ============ */
@@ -56,7 +57,7 @@ function initNavbar() {
   onScroll();
 }
 
-/* ============ SPOTLIGHT ============ */
+/* ============ SPOTLIGHT (mouse-follow glow) ============ */
 function initSpotlight() {
   const selector = ".spotlight, .fb-card, .feature-card, .stat-card, .qa-card, .card";
   document.querySelectorAll(selector).forEach((card) => {
@@ -70,47 +71,15 @@ function initSpotlight() {
   });
 }
 
-/* ============ CUSTOM CURSOR BLOB ============ */
+/* ============ CURSOR (NORMAL / NATIVE) ============ */
 function initCursorBlob() {
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-  if (window.innerWidth < 900) return;
-
-  const blob = document.createElement("div");
-  blob.className = "cursor-blob";
-  document.body.appendChild(blob);
-  document.body.classList.add("cursor-enabled");
-
-  let mouseX = 0, mouseY = 0;
-  let blobX = 0, blobY = 0;
-
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  function animate() {
-    blobX += (mouseX - blobX) * 0.18;
-    blobY += (mouseY - blobY) * 0.18;
-    blob.style.transform = `translate(${blobX}px, ${blobY}px) translate(-50%, -50%)`;
-    requestAnimationFrame(animate);
-  }
-  animate();
-
-  document.querySelectorAll("a, button, .btn, input, select, textarea").forEach((el) => {
-    el.addEventListener("mouseenter", () => {
-      blob.style.width = "44px";
-      blob.style.height = "44px";
-    });
-    el.addEventListener("mouseleave", () => {
-      blob.style.width = "24px";
-      blob.style.height = "24px";
-    });
-  });
+  // Custom cursor blob disabled — using native cursor for better UX
+  return;
 }
 
 /* ============ CONFETTI ============ */
 function fireConfetti(count = 60) {
-  const colors = ["#B4FF3D", "#FF2E93", "#00D4B8", "#FF7A00", "#FFFFFF"];
+  const colors = ["#4A7C59", "#C77D8C", "#4A7C8C", "#D9825F", "#FFFFFF"];
   for (let i = 0; i < count; i++) {
     const piece = document.createElement("div");
     piece.className = "confetti-piece";
@@ -196,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollProgress();
   initScrollAnimations();
   initSpotlight();
-  initCursorBlob();
+  initCursorBlob();   // No-op now — native cursor active
   initSmoothScroll();
   initTheme();
   updateNavbarAuth();

@@ -9,3 +9,5 @@ backend/uploads/*
 .vscode/
 frontend-backup/
 backend-backup/
+*.bak
+*.backup
