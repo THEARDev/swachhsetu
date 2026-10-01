@@ -23,49 +23,93 @@ def allowed_file(filename):
     return ext in current_app.config.get("ALLOWED_EXTENSIONS", set())
 
 
-def classify_waste(image_path):
-    """Hugging Face API se waste classify karo."""
-    hf_token = os.getenv("HF_TOKEN", "").strip()
-    if not hf_token:
-        return "unknown"
+# ============================================
+# AI CLASSIFICATION (VALIDATION DISABLED FOR DEMO)
+# ============================================
+HF_WASTE_URL = "https://api-inference.huggingface.co/models/wanghaofan/waste-classification"
 
-    hf_url = "https://api-inference.huggingface.co/models/wanghaofan/waste-classification"
+CONFIDENCE_THRESHOLD = 0.30
+
+
+def classify_waste(image_path):
+    """
+    Classify waste image.
+    NOTE: Validation disabled for demo — always returns valid=True.
+    """
+    hf_token = os.getenv("HF_TOKEN", "").strip()
+
+    # If no token, return unknown but valid
+    if not hf_token:
+        return {
+            "tag": "unknown",
+            "confidence": 0,
+            "valid": True,
+            "reason": "AI not configured",
+        }
 
     try:
         with open(image_path, "rb") as f:
             image_bytes = f.read()
 
         r = requests.post(
-            hf_url,
+            HF_WASTE_URL,
             headers={"Authorization": f"Bearer {hf_token}"},
             data=image_bytes,
-            timeout=12,
+            timeout=15,
         )
 
         if r.status_code != 200:
-            print("HF error status:", r.status_code, r.text[:200])
-            return "unknown"
+            return {
+                "tag": "unknown",
+                "confidence": 0,
+                "valid": True,
+                "reason": f"API error {r.status_code}",
+            }
 
         data = r.json()
         if not isinstance(data, list) or not data:
-            return "unknown"
+            return {
+                "tag": "unknown",
+                "confidence": 0,
+                "valid": True,
+                "reason": "Invalid response",
+            }
 
         best = max(data[0], key=lambda x: x.get("score", 0))
+        confidence = best.get("score", 0)
         label = best.get("label", "").lower()
 
-        if "wet" in label or "organic" in label:
-            return "wet"
-        if "dry" in label or "recycl" in label or "paper" in label or "plastic" in label:
-            return "dry"
-        if "hazard" in label or "toxic" in label or "e-waste" in label or "medical" in label:
-            return "hazardous"
-        return "unknown"
+        # Normalize label
+        if "wet" in label or "organic" in label or "food" in label:
+            tag = "wet"
+        elif "dry" in label or "recycl" in label or "paper" in label or "plastic" in label:
+            tag = "dry"
+        elif "hazard" in label or "toxic" in label or "e-waste" in label or "medical" in label:
+            tag = "hazardous"
+        else:
+            tag = "unknown"
+
+        # ALWAYS VALID — no rejection
+        return {
+            "tag": tag,
+            "confidence": round(confidence, 2),
+            "valid": True,
+            "reason": "Accepted",
+        }
 
     except Exception as e:
-        print("AI classify error:", e)
-        return "unknown"
+        print(f"AI error: {e}")
+        return {
+            "tag": "unknown",
+            "confidence": 0,
+            "valid": True,
+            "reason": "AI processing failed",
+        }
 
 
+# ============================================
+# CREATE COMPLAINT
+# ============================================
 @complaints_bp.post("/")
 @jwt_required()
 def create_complaint():
@@ -90,28 +134,35 @@ def create_complaint():
     if lat == 0 and lng == 0:
         return jsonify(msg="Please detect location first"), 400
 
-    # 🤖 NLP Auto-detection
+    # NLP Auto-detection
     nlp_category = detect_category(description)
     nlp_priority = detect_priority(description)
     nlp_keywords = extract_keywords(description)
     detected_language = "hindi" if contains_hindi(description) else "english"
 
-    # Agar user ne category select nahi ki, toh NLP ka use karo
     final_category = category if category else (nlp_category if nlp_category != "other" else "other")
 
-    # Handle image upload
+    # ===== IMAGE HANDLING =====
     img_url = ""
     ai_tag = "unknown"
+    ai_confidence = 0
+
     file = request.files.get("image")
     if file and file.filename:
         if not allowed_file(file.filename):
-            return jsonify(msg="Invalid image format"), 400
+            return jsonify(msg="Invalid image format. Use JPG, PNG, or WEBP."), 400
+
         safe_name = secure_filename(file.filename)
         fn = f"{uuid.uuid4().hex}_{safe_name}"
         save_path = os.path.join(current_app.config["UPLOAD_FOLDER"], fn)
         file.save(save_path)
+
+        # AI Classification — NO REJECTION
+        ai_result = classify_waste(save_path)
+        ai_tag = ai_result["tag"]
+        ai_confidence = ai_result["confidence"]
+
         img_url = f"/uploads/{fn}"
-        ai_tag = classify_waste(save_path)
 
     # Generate ticket ID
     ticket_id = "WM" + uuid.uuid4().hex[:8].upper()
@@ -150,6 +201,7 @@ def create_complaint():
         ticket_id=complaint.ticket_id,
         id=complaint.id,
         ai_tag=ai_tag,
+        ai_confidence=ai_confidence,
         priority=nlp_priority,
         nlp_category=nlp_category,
         keywords=nlp_keywords,
@@ -191,7 +243,7 @@ def submit_feedback(cid):
     if c.status != "resolved":
         return jsonify(msg="You can only rate resolved complaints"), 400
     if Feedback.query.filter_by(complaint_id=cid).first():
-        return jsonify(msg="Feedback already submitted for this complaint"), 400
+        return jsonify(msg="Feedback already submitted"), 400
 
     d = request.get_json() or {}
     try:
@@ -218,7 +270,6 @@ def submit_feedback(cid):
 
 @complaints_bp.post("/analyze")
 def analyze_text():
-    """NLP live preview endpoint."""
     d = request.get_json() or {}
     description = (d.get("description") or "").strip()
 
